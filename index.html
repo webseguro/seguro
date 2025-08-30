@@ -5,93 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mais de 1000 alunas estudando agora no app</title>
     <style>
-        /* Opcional: Para garantir que não haja margens no body e o iframe ocupe tudo */
         body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh; /* Garante que o body ocupe pelo menos a tela toda */
-    overflow-y: auto;  /* Permite rolagem vertical se o conteúdo for maior */
-}
-
-/* Se o seu conteúdo principal não estiver crescendo: */
-.content-container {
-    min-height: 100vh; /* Força altura mínima = altura da tela */
-    padding: 20px;     /* Espaçamento interno */
-}
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        .content-container {
+            min-height: 100vh;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
-    <script>
-  // Pega o parâmetro 'pixel' da URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const pixel = urlParams.get('pixel') || '4220368448242034'; // fallback para um pixel padrão
+<script>
+    // === 1. Captura o parâmetro 'pixel' da URL ou usa um valor padrão ===
+    const urlParams = new URLSearchParams(window.location.search);
+    let pixel = urlParams.get('pixel');
 
-  // Código padrão do Pixel Facebook
-  !function(f,b,e,v,n,t,s)
-  {
-      if(f.fbq)return;
-      n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;
-      n.push=n; n.loaded=!0; n.version='2.0';
-      n.queue=[];
-      t=b.createElement(e); t.async=!0;
-      t.src=v;
-      s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)
-  }(window, document,'script',
-  'https://connect.facebook.net/en_US/fbevents.js');
+    // Validação simples: se não for numérico ou tiver tamanho inválido, usa padrão
+    if (!pixel || !/^\d{10,20}$/.test(pixel)) {
+        pixel = '4220368448242034'; // Valor padrão
+    }
 
-  // Inicializa dinamicamente o pixel
-  fbq('init', pixel);
-  fbq('track', 'PageView');
+    // === 2. Carrega script do Facebook Pixel ===
+    !function(f,b,e,v,n,t,s){
+        if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)
+    }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+    // === 3. Inicializa o pixel dinamicamente ===
+    fbq('init', pixel);
+    fbq('track', 'PageView');
+
+    // === 4. Gera dinamicamente o noscript para fallback ===
+    const noscript = document.createElement('noscript');
+    noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixel}&ev=PageView&noscript=1" />`;
+    document.body.appendChild(noscript);
 </script>
 
-<noscript>
-  <img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=4220368448242034&ev=PageView&noscript=1" />
-</noscript>
+<div id="quiz-anchor"></div> 
 
-    <div id="quiz-anchor"></div> 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const dynamicQuizAlias = urlParams.get('alias');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 1. Obter o alias do quiz da URL ATUAL desta página do GitHub Pages.
-            // Ex: Se a URL for https://webtvbrasil.github.io/quiz/?alias=u98q9cenp6x2
-            const urlParams = new URLSearchParams(window.location.search);
-            const dynamicQuizAlias = urlParams.get('alias'); // <<< AQUI! Pega o valor do parâmetro 'alias'
-                                                            // Se você usasse '?quiz_id=xyz', seria urlParams.get('quiz_id')
+        if (dynamicQuizAlias) {
+            const scriptElement = document.createElement('script');
+            scriptElement.id = 'especialist-quiz-loader';
+            scriptElement.src = 'https://api.especialist.com.br/api/chamapagina.js';
+            scriptElement.setAttribute('alias', dynamicQuizAlias);
 
-            // 2. Verificar se o alias foi encontrado
-            if (dynamicQuizAlias) {
-                // 3. Criar a tag <script> do loader do quiz dinamicamente
-                const scriptElement = document.createElement('script');
-                scriptElement.id = 'especialist-quiz-loader'; // ID que o chamaquiz.js espera
-                scriptElement.src = 'https://api.especialist.com.br/api/chamapagina.js'; // URL do seu loader JS
-                scriptElement.setAttribute('alias', dynamicQuizAlias); // Define o atributo 'alias' com o valor dinâmico
-
-                // 4. Inserir a tag <script> criada no DOM
-                // Ela será inserida logo após o div 'quiz-anchor'.
-                const anchor = document.getElementById('quiz-anchor');
-                if (anchor) {
-                    anchor.parentNode.insertBefore(scriptElement, anchor.nextSibling);
-                } else {
-                    // Fallback: Se o div de ancoragem não for encontrado, adicione no final do body
-                    document.body.appendChild(scriptElement);
-                }
+            const anchor = document.getElementById('quiz-anchor');
+            if (anchor) {
+                anchor.parentNode.insertBefore(scriptElement, anchor.nextSibling);
             } else {
-                // 5. Lidar com o caso em que o 'alias' não é fornecido na URL
-                const anchor = document.getElementById('quiz-anchor');
-                if (anchor) {
-                    anchor.innerHTML = '<p style="color: red; text-align: center; font-size: 1.2em;">Erro: O ID do quiz não foi especificado na URL. Exemplo: ?alias=SEU_ID_DO_QUIZ</p>';
-                } else {
-                    console.error("Erro: Elemento de âncora do quiz não encontrado ou alias ausente na URL.");
-                    // Fallback para páginas muito básicas
-                    document.body.innerHTML += '<p style="color: red; text-align: center;">Erro: Pagina inativa ou inexistente.</p>';
-                }
+                document.body.appendChild(scriptElement);
             }
-        });
-    </script>
-<!-- Embed external JavaScript to disable developer tools --> <script src="https://disabletools.github.io/disable-tools/disable-tools.js"></script>
+        } else {
+            const anchor = document.getElementById('quiz-anchor');
+            if (anchor) {
+                anchor.innerHTML = '<p style="color: red; text-align: center; font-size: 1.2em;">Erro: O ID do quiz não foi especificado na URL. Exemplo: ?alias=SEU_ID_DO_QUIZ</p>';
+            } else {
+                console.error("Erro: Elemento de âncora do quiz não encontrado ou alias ausente na URL.");
+                document.body.innerHTML += '<p style="color: red; text-align: center;">Erro: Pagina inativa ou inexistente.</p>';
+            }
+        }
+    });
+</script>
+
+<script src="https://disabletools.github.io/disable-tools/disable-tools.js"></script>
 </body>
 </html>
